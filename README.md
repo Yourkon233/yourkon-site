@@ -12,17 +12,39 @@
 ```
 yichao-space/
 ├─ index.html          整站（HTML + CSS + JS 都在里面）
-├─ assets/             图片
-│  ├─ yourkon-night.jpg        曜康 · 星夜回眸（首页主视觉）
-│  ├─ yourkon-moon.jpg         曜康 · 月光之下
-│  ├─ yourkon-sticker.jpg      曜康 · 贴纸立绘
-│  ├─ yourkon-paw.jpg          曜康 · 爪
-│  ├─ unya-city.jpg            乌奈雅 · 夜城（原图，灯箱用）
-│  ├─ unya-city-portrait.jpg   乌奈雅 · 夜城（4:5 裁切，档案卡用）
-│  ├─ unya-chibi.jpg           乌奈雅 · 立绘
-│  └─ unya-sheet.jpg           乌奈雅 · 设定参考
+├─ assets/             图片（全部 WebP，按宽度分档）
+│  ├─ yourkon-night-{200,480,800,1200,1400}.webp      曜康 · 星夜回眸（首页主视觉）
+│  ├─ yourkon-moon-{200,480,800,1200,1400}.webp       曜康 · 月光之下
+│  ├─ yourkon-sticker-{...}.webp                      曜康 · 贴纸立绘
+│  ├─ yourkon-paw-{...}.webp                          曜康 · 爪
+│  ├─ unya-chibi-{...}.webp                           乌奈雅 · 立绘
+│  ├─ unya-city-portrait-{200,480,800,1200}.webp       乌奈雅 · 夜城（4:5，档案卡/图墙）
+│  ├─ unya-city-1200.webp                             乌奈雅 · 夜城（完整长图，灯箱用）
+│  ├─ unya-sheet-{200,600,1100,1680}.webp             乌奈雅 · 设定参考
+│  └─ og-cover.jpg                                    分享到 QQ/微信时的预览图
 └─ README.md
 ```
+
+**为什么这么多文件？** 每张图都出了好几个宽度，网页用 `srcset` 让浏览器自己挑：
+手机拿小图、高清屏拿大图、缩略图拿 200px 的小方块。所以文件多，但**一次打开只会下载其中一小部分**。
+
+## 图片是怎么优化的
+
+| | 之前（JPEG） | 现在（WebP 多尺寸） |
+| --- | --- | --- |
+| 首屏那一张 | 158 KB | **61 KB**（手机/电脑都按屏幕挑） |
+| 整页图片全加载 | 约 1.36 MB | 手机上约 **690 KB**，电脑上约 **780 KB** |
+| 缩略图 | 每张跟着主图一起下 | 单独的 200px 版本，6–11 KB |
+
+再加上 `loading="lazy"`，往下滚到哪儿才加载哪儿。
+
+## 关于「不能右键保存图片」
+
+页面上做了这些限制：禁用右键菜单、禁止拖拽图片、禁用长按弹出的保存菜单（`-webkit-touch-callout`）、
+并且图片本身不接收鼠标事件（`pointer-events:none`），所以长按/右键打到的是外层容器。
+
+**但要明白：这只是提高一点门槛，挡不住真想拿图的人**（开发者工具、截图、改代码都能绕过）。
+真正有用的是图片本来就有满屏水印，以及页面底部那句版权声明。如果哪天要更严，得靠给图片做分块水印服务，那就不是纯静态站能解决的了。
 
 ## 怎么发布
 
@@ -50,15 +72,19 @@ yichao-space/
 
 ### 加一张新图
 
-1. 图片丢进 `assets/`，宽度建议 ≤ 1200px、体积 ≤ 300KB（JPEG）。
-2. 画廊里复制一段 `<figure class="gitem" ...>`，改 `data-src`、`data-cap` 和 `alt` 即可。
+1. 用工具把原图导成几档 WebP（200 / 480 / 800 / 1200 差不多够用），放进 `assets/`，
+   命名如 `新图-480.webp`、`新图-800.webp`。
+2. 画廊里复制一段 `<figure class="gitem" ...>`，把 `data-src` 指向最大那张，
+   `<img>` 的 `src` / `srcset` 改成新文件即可。
+
+懒一点也行：直接放一张 JPEG，`src` 指过去，功能照样正常，只是没那么省流量。
 
 ### 三个角色的图
 
-- 曜康、乌奈雅的图可以直接换同名的文件，页面不用改。
+- 曜康、乌奈雅的图：替换 `assets/` 里同名同尺寸的文件即可，页面不用改。
 - 蒙卡纳暂时没有立绘，用的是「档案占位卡」。以后有图了，把
   `<div class="placeholder">…</div>` 整段换成
-  `<div class="frame"><img src="assets/monkana.jpg" alt="蒙卡纳"></div>` 就行。
+  `<div class="frame"><img src="assets/monkana-800.webp" alt="蒙卡纳"></div>` 就行。
 
 ## 一点说明
 
